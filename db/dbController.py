@@ -1,7 +1,8 @@
 from pymongo import MongoClient
+import pymongo
 from itertools import filterfalse
 
-def create_db(hostIP: str, port: int) -> tuple:
+def get_db(hostIP: str, port: int) -> tuple:
     '''Return database and collection'''
     client = MongoClient(hostIP, port) # Connection
 
@@ -14,7 +15,7 @@ def create_db(hostIP: str, port: int) -> tuple:
         if input ('Are you sure to delete all the data in ImagesDB? (y/n): ') == 'y':
             client.drop_database(client['ImagesDB'])
             print('System: Cleared the ImagesDB.')
-    
+
     return db, coll
 
 def insert_image(coll, doc: dict):
@@ -28,7 +29,7 @@ def insert_images(coll, docList: list):
     startIdx = docList[0]['_id']
     endIdx = docList[-1]['_id']
 
-    existingDocs = coll.find({'_id': {'$gte': startIdx, '$lte': endIdx}})
+    existingDocs = coll.find({'_id': {'$gte': startIdx, '$lt': endIdx}})
     needInsertedDocList = list(filterfalse(lambda x: x in existingDocs, docList)) # Output False elements(not output True elements)
     
     if needInsertedDocList != []:
@@ -38,3 +39,22 @@ def delete_images_by_regex(coll, field: str, regex: str):
     coll.delete_many({
         field: {'$regex': regex}
     })
+
+def find_15th_great_images(coll, h, s, v):
+    return coll.aggregate([{
+        '$project': {
+            '_id': 1,
+            'dist': {
+                '$add': [
+                    {'$pow': [ { '$subtract': [ {'$arrayElemAt': [ "$hsv_aver", 0 ]}, h]}, 2 ]},
+                    {'$pow': [ { '$subtract': [ {'$arrayElemAt': [ "$hsv_aver", 1 ]}, s] }, 2 ]},
+                    {'$pow': [ { '$subtract': [ {'$arrayElemAt': [ "$hsv_aver", 2 ]}, v] }, 2 ]}
+                ]
+            },
+            'gray_code': 1
+        }},
+        {'$sort':{'dist': pymongo.ASCENDING}},
+        {'$limit': 15}
+    ])
+    
+    # return coll.find({'_id': 1}).limit(15)

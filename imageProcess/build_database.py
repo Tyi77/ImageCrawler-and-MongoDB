@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import os
-import imageProcess.Analysis_HSV as Analysis_HSV
+import Analysis_HSV
 from tqdm import tqdm
 import shutil
 from multiprocessing.pool import Pool
@@ -10,7 +10,7 @@ def build(name):
     file = open('./database/attribute.txt', 'a')
     to_height = 100
     to_width = 100
-    img = cv2.imread('./Image/{name}')
+    img = cv2.imread(f'./Image/{name}')
     # 裁切圖片為正方形
     if img.shape[0] > img.shape[1]:
         center = (int)(img.shape[0] / 2)
@@ -27,12 +27,12 @@ def build(name):
     cv2.imwrite(f'./database/{name}', img)
     file.close()
 
-def insert_analyzed_images(coll):
-    # try:
-    #     shutil.rmtree('./database')
-    # except:
-    #     pass
-    # os.mkdir('./database')
+if __name__ == '__main__':
+    try:
+        shutil.rmtree('./database')
+    except:
+        pass
+    os.mkdir('./database')
     data_name = os.listdir('./Image')
     with Pool() as pool:
         list(tqdm(pool.imap(build,data_name), colour='WHITE', desc="build database", total=len(data_name)))
