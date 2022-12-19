@@ -4,7 +4,7 @@ import concurrent.futures
 from itertools import compress
 
 def crawler(args):
-    '''args 0: idx, 1: url'''
+    '''Used by the func crawl_images\n\nargs: 0/idx, 1/url'''
     img = requests.get(args[1])
     try:
         img.content.decode('utf-8')
@@ -12,7 +12,7 @@ def crawler(args):
     except:
         pass
 
-    with open(f'./images/{args[0]}.jpg', 'wb') as file:
+    with open(f'./Image/{args[0]}.jpg', 'wb') as file:
         file.write(img.content)
     print(args[0], args[1])
     return True # Valid
@@ -32,8 +32,8 @@ def crawl_images(startIdx: int, endIdx: int) -> list:
     #         print('You enter wrong pattern.')
 
     # ---Check the folder which places images exists---
-    if not os.path.exists('./images'):
-        os.mkdir('./images')
+    if not os.path.exists('./Image'):
+        os.mkdir('./Image')
     
     # ---Build the url list---
     imageURLs = [] # (idx, url)
